@@ -1,0 +1,8 @@
+.idea
+go.sum
+modules.xml
+vcs.xml
+zset.iml
+*.tmp
+logs/
+main

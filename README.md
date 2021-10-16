@@ -136,3 +136,5 @@ CREATE TABLE `topic` (
 SET FOREIGN_KEY_CHECKS = 1;
 
 ```
+
+#项目架构的封装

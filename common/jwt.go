@@ -20,7 +20,7 @@ type JwtPayload struct {
 }
 
 // 生成jwt token
-func GenerateToken(username string, userid int) (string, error) {
+func GenerateJwtToken(username string, userid int) (string, error) {
 	//当前时间
 	nowTime := time.Now()
 	//token的到期时间 默认7天
@@ -42,7 +42,7 @@ func GenerateToken(username string, userid int) (string, error) {
 }
 
 // 解析验证jwt token
-func ParseToken(token string) (*JwtPayload, error) {
+func ParseJwtToken(token string) (*JwtPayload, error) {
 	//匿名函数 没有函数名 声明并立即调用
 	tokenClaims, err := jwt.ParseWithClaims(token, &JwtPayload{}, func(token *jwt.Token) (interface{}, error) {
 		return jwtSecret, nil

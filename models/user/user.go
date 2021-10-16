@@ -9,7 +9,7 @@ import (
 //model的定义见文档  https://beego.me/docs/mvc/model/models.md
 type User struct {
 	Id         int       `orm:"pk;auto"`                                            //id 自增
-	UserName   string    `orm:"unique;column(user_name);size(64);description(用户名)"` //用户名 数据库字段会是user_name
+	Username   string    `orm:"unique;column(user_name);size(64);description(用户名)"` //用户名 数据库字段会是user_name
 	Password   string    `orm:"size(32);description(密码)"`
 	Age        int       `orm:"null;description(年龄)"`
 	Gender     int       `orm:"null;description(1:男,2:女,3:未知)"`

@@ -1,13 +1,12 @@
 package user
 
 import (
-	beego "github.com/beego/beego/v2/server/web"
 	"zset_api/common"
 )
 
 //login的Controller
 type LoginController struct {
-	beego.Controller
+	common.BaseController
 }
 
 type User struct {
@@ -21,7 +20,7 @@ func (self *LoginController) Post() {
 	//序列化的数据库对象
 	results := make(map[string]interface{})
 	//假设已经登陆了 当前用户的用户名为xiongyao userid=431
-	token, _ := common.GenerateToken("xiongyao", 431)
+	token, _ := common.GenerateJwtToken("xiongyao", 431)
 	results["token"] = token
 	//数据数组
 	data["code"] = 200

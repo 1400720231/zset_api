@@ -6,3 +6,4 @@ zset.iml
 *.tmp
 logs/
 main
+*.jpeg

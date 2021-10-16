@@ -13,8 +13,8 @@ type Post struct {
 	Id         int          `orm:"pk;auto"`                                         //id 自增
 	UserId     *user.User   `orm:"rel(fk);description(用户外键);on_delete(do_nothing)"` //外键 集联删除不操作
 	TopicId    *topic.Topic `orm:"rel(fk);description(话题外键);on_delete(do_nothing)"` //外键 集联删除不操作
-	title      string       `orm:"size(64);description("帖子名字")"`
-	Content    string       `orm:"type(text);description("帖子内容")"`                     //文章内容比较大 设置为text对应mysql longtext
+	title      string       `orm:"size(64);description(帖子名字)"`
+	Content    string       `orm:"type(text);description(帖子内容)"`                       //文章内容比较大 设置为text对应mysql longtext
 	IsActive   int          `orm:"description(1草稿箱，0非草稿箱);default(1)"`                 //默认值是1
 	IsDelete   int          `orm:"description(1删除，0未删除);default(0)"`                   //默认值是0
 	CreateTime time.Time    `orm:"auto_now_add;type(datetime);description(创建时间);null"` //创建时间自动添加 datetime类型；也有date类型选择

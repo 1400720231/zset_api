@@ -9,6 +9,13 @@ import (
 //https://beego.me/docs/mvc/controller/controller.md#%E5%AD%90%E7%B1%BB%E6%89%A9%E5%B1%95
 type BaseControllerInterface interface {
 	CheckPermission() bool                        //路由层面权限拦截
+	CheckGetPermission() bool                     //get方法级别权限
+	CheckPostPermission() bool                    //post方法级别权限
+	CheckPutPermission() bool                     //put方法级别权限
+	CheckDeletePermission() bool                  //delete方法级别权限
+	CheckHeadPermission() bool                    //head方法级别权限
+	CheckOptionsPermission() bool                 //options方法级别权限
+	CheckPatchPermission() bool                   //Patch方法级别权限
 	CheckValidPermission() map[string]interface{} //业务逻辑层面权限校验 比如验证码过期 您还没有权限操作
 }
 
@@ -51,6 +58,36 @@ func (self *BaseController) Prepare() {
 			self.Abort("403")
 
 		}
+		getStatus := app.CheckGetPermission()
+		if getStatus == false {
+			self.Abort("403")
+
+		}
+		postStatus := app.CheckPostPermission()
+		if postStatus == false {
+			self.Abort("403")
+
+		}
+		putStatus := app.CheckPutPermission()
+		if putStatus == false {
+			self.Abort("403")
+
+		}
+		deleteStatus := app.CheckDeletePermission()
+		if deleteStatus == false {
+			self.Abort("403")
+
+		}
+		headStatus := app.CheckHeadPermission()
+		if headStatus == false {
+			self.Abort("403")
+
+		}
+		optionStatus := app.CheckOptionsPermission()
+		if optionStatus == false {
+			self.Abort("403")
+
+		}
 
 		validData := app.CheckValidPermission()
 		fmt.Println("CheckValidPermission")
@@ -69,6 +106,36 @@ func (self *BaseController) Prepare() {
 
 //封装权限
 func (self *BaseController) CheckPermission() bool {
+	return true
+}
+
+//get方法级别权限
+func (self *BaseController) CheckGetPermission() bool {
+	return true
+}
+
+//post方法级别权限
+func (self *BaseController) CheckPostPermission() bool {
+	return true
+}
+
+//put方法级别权限
+func (self *BaseController) CheckPutPermission() bool {
+	return true
+}
+
+//delete方法级别权限
+func (self *BaseController) CheckDeletePermission() bool {
+	return true
+}
+
+//head方法级别权限
+func (self *BaseController) CheckHeadPermission() bool {
+	return true
+}
+
+//options方法级别权限
+func (self *BaseController) CheckOptionsPermission() bool {
 	return true
 }
 

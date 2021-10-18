@@ -2,39 +2,52 @@ package user
 
 import (
 	"fmt"
+	"github.com/beego/beego/v2/adapter/orm"
 	"github.com/beego/beego/v2/server/web/context"
 	"strconv"
-
 	"zset_api/common"
+	"zset_api/models/user"
 )
 
 type UserinfoController struct {
 	common.BaseController
 }
 type UserInfo struct {
-	Username string `json:"username"`
-	Password string `json:"password"`
+	Id string `json:"id"`
+	//Username   string    `json:"username"`
+	//Age        int       `json:"age"`
+	//Gender     int       `json:"gender"`
+	//Phone      int64     `json:"phone"`
+	//Email      string    `json:"email"`
+	//Profile    string    `json:"profile"`
+	//CreateTime time.Time `json:"create_time"`
 }
 
 //利用结构体的绑定实现http的post方法 beego内部对应的Post函数
 func (self *UserinfoController) Get() {
-	userid, _ := self.GetInt("id")
-	fmt.Println("UserinfoControlleruserid", userid)
 	data := make(map[string]interface{})
-	//序列化的数据库对象
-	results := make(map[string]interface{})
+	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
 
-	results["username"] = "boy"
-	results["age"] = 18
-	results["weight"] = 120
+	user_id := self.Ctx.Input.Param(":user_id")
+	UserId, _ := strconv.Atoi(user_id)
+	fmt.Println("UserinfoControlleruserid", UserId)
+
+	userStruct := &user.User{}
+	o := orm.NewOrm()
+
+	//查询数据库是否有当前用户和密码对应 只返回部分字段值，其他全为默认值
+	//select id,username from 而不是select * from
+	o.QueryTable("user").Filter("id", UserId).Filter("is_delete", 0).One(userStruct, "Id", "Username", "age", "Gender", "Phone", "Email", "Profile", "CreateTime")
+	Userinfo := userStruct.Userinfo()
 	//数据数组
 	data["code"] = 200
 	data["message"] = "success"
-	data["results"] = results
-	self.Data["json"] = data
+	response["data"] = Userinfo
+	self.Data["json"] = response
 	self.ServeJSON()
 }
 
+//认证
 func (self *UserinfoController) Authorization(ctx *context.Context) (int, error) {
 	userId, err := common.JwtAuthorization(ctx)
 	fmt.Println("Authorization", userId)
@@ -42,17 +55,19 @@ func (self *UserinfoController) Authorization(ctx *context.Context) (int, error)
 
 }
 
-//权限钩子函数 默认通过
+// 权限
 func (self *UserinfoController) CheckPermission(ctx *context.Context) bool {
-	//fmt.Println("self.GetString(\"user_id\") ", self.GetInt("id"))
-	user_id_string := self.Ctx.Input.Param(":user_id")
-	id, _ := strconv.Atoi(user_id_string)
-	userid := self.Ctx.Input.GetData("user_id")
-	fmt.Println("CheckPermission", id, userid)
-	if id != userid {
+	user_id := self.Ctx.Input.Param(":user_id") //注意这里的从路由中解析参数需要加 “:”
+	fmt.Println("UserinfoController", user_id)
+	fmt.Println(self.UserId)
+	UserId, _ := strconv.Atoi(user_id)
+	if UserId != self.UserId {
 		return false
 	}
-	status := common.IsLoginPermission(ctx)
-	fmt.Println(status)
-	return status
+	return true
+}
+
+//业务校验
+func (self *UserinfoController) CheckValidPermission(ctx *context.Context) map[string]interface{} {
+	return map[string]interface{}{"code": 200}
 }

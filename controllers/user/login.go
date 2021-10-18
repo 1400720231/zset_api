@@ -1,7 +1,11 @@
 package user
 
 import (
+	"github.com/beego/beego/v2/adapter/orm"
+	"github.com/beego/beego/v2/core/logs"
+	"github.com/beego/beego/v2/server/web/context"
 	"zset_api/common"
+	"zset_api/models/user"
 )
 
 //login的Controller
@@ -10,25 +14,63 @@ type LoginController struct {
 }
 
 type User struct {
-	Username string `json:"username2"`
+	Username string `json:"username"`
 	Password string `json:"password"`
 }
 
 //利用结构体的绑定实现http的post方法 beego内部对应的Post函数
 func (self *LoginController) Post() {
 	data := make(map[string]interface{})
-	//序列化的数据库对象
-	results := make(map[string]interface{})
-	//假设已经登陆了 当前用户的用户名为xiongyao userid=431
-	token, _ := common.GenerateJwtToken("xiongyao", 431)
-	results["token"] = token
-	//数据数组
-	data["code"] = 200
-	data["message"] = "success"
-	data["results"] = results
-	self.Data["json"] = data
+	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
+	username := self.GetString("username")                                     //默认值为空字符串
+	password := self.GetString("password")                                     //默认值为空字符串
+	md5Pwd := common.GetMd5Str(password)
+	userStruct := &user.User{}
+	//声明orm对象
+	o := orm.NewOrm()
+	//查询数据库是否有当前用户和密码对应
+	err := o.QueryTable("user").Filter("user_name", username).Filter("password", md5Pwd).One(userStruct)
+	logs.Info("LoginController", err)
+	if err == nil {
+		token, _ := common.GenerateJwtToken(username, userStruct.Id)
+		data["user_id"] = userStruct.Id
+		data["username"] = userStruct.Username
+		data["token"] = token
+		response["data"] = data
+	}
+	self.Data["json"] = response
 	self.ServeJSON()
 
+}
+
+// 不做认证
+func (self *LoginController) Authorization(ctx *context.Context) (int, error) {
+	return 0, nil
+}
+
+// 认通过
+func (self *LoginController) CheckPermission(ctx *context.Context) bool {
+	return true
+}
+
+// CheckValidPermission form表单校验
+func (self *LoginController) CheckValidPermission(ctx *context.Context) map[string]interface{} {
+	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
+	username := self.GetString("username")
+	password := self.GetString("password")
+	md5Pwd := common.GetMd5Str(password)
+	//声明orm对象
+	o := orm.NewOrm()
+	ok := o.QueryTable("user").Filter("user_name", username).Filter("password", md5Pwd).Exist()
+	logs.Info("LoginController", ok)
+	if ok {
+		return response
+	}
+
+	response["code"] = 600
+	response["message"] = "账号或密码错误"
+
+	return response
 }
 
 /*

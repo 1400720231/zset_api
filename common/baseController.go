@@ -9,16 +9,16 @@ import (
 //https://beego.me/docs/mvc/controller/controller.md#%E5%AD%90%E7%B1%BB%E6%89%A9%E5%B1%95
 type BaseControllerInterface interface {
 	//注意子类的函数名 和返回类型都要必须一模一样才叫做满足这个interface协议
-	Authorization(ctx *context.Context) (int, error) //认证
-	CheckPermission(ctx *context.Context) bool       //路由层面权限拦截
-	//CheckValidPermission(ctx *context.Context)       //业务逻辑层面权限校验 比如验证码过期 您还没有权限操作
+	Authorization(ctx *context.Context) (int, error)                  //认证
+	CheckPermission(ctx *context.Context) bool                        //路由层面权限拦截
+	CheckValidPermission(ctx *context.Context) map[string]interface{} //业务逻辑层面权限校验 比如验证码过期 您还没有权限操作
 }
 
 //login的Controller
 type BaseController struct {
 	beego.Controller
 	UserId int //用户id 当然实际上不一定是int，具体看业务要求，一般不做分表分库单表的id肯定够
-	//AuthorizationFunc map[string]string
+
 }
 
 //重写beego中的Prepare钩子函数
@@ -38,11 +38,14 @@ func (self *BaseController) Prepare() {
 	//当然也可以考虑把CheckValidPermission函数放到接口的控制函数中。。。。可能只是get接口的时候少一点代码把
 	if app, ok := self.AppController.(BaseControllerInterface); ok {
 		//认证,默认返回userid为0 不认证
-		UserId, _ := app.Authorization(self.Ctx)
-		if UserId == 0 {
+		UserId, err := app.Authorization(self.Ctx)
+		//如果认证解析出错 直接401
+		if err != nil {
 			self.Abort("401")
+		} else { //否则解析当前user_id
+			self.UserId = UserId
 		}
-		self.UserId = UserId
+
 		fmt.Println("userid", UserId)
 		fmt.Println("CheckPermission")
 		//权限校验 不通过直接403 路由权限校验
@@ -50,12 +53,18 @@ func (self *BaseController) Prepare() {
 		if routerStatus == false {
 			self.Abort("403")
 		}
-		////业务逻辑校验
-		//app.CheckValidPermission(self.Ctx)
+		//业务逻辑校验
+		validate := app.CheckValidPermission(self.Ctx)
+		if validate["code"] != 200 {
+			self.Data["json"] = validate
+			self.ServeJSON()
+		}
 	}
 
 	return
 }
+
+//业务Controller必须全部封装下面的三个函数才算满足interface
 
 ////认证钩子函数 默认不做认证
 //func (self *BaseController) Authorization(ctx *context.Context) int {

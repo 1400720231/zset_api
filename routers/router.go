@@ -14,6 +14,6 @@ func init() {
 	beego.Router("/register", &user.RegisterController{})
 
 	beego.Router("/modify_userinfo/:user_id:int", &user.ModifyUserinfoController{})
-	//beego.Router("/oss_file", &user.FileController{})
+	beego.Router("/upload", &user.UploadController{})
 
 }

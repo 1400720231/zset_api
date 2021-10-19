@@ -12,16 +12,6 @@ import (
 type UserinfoController struct {
 	common.BaseController
 }
-type UserInfo struct {
-	Id string `json:"id"`
-	//Username   string    `json:"username"`
-	//Age        int       `json:"age"`
-	//Gender     int       `json:"gender"`
-	//Phone      int64     `json:"phone"`
-	//Email      string    `json:"email"`
-	//Profile    string    `json:"profile"`
-	//CreateTime time.Time `json:"create_time"`
-}
 
 //利用结构体的绑定实现http的post方法 beego内部对应的Post函数
 func (self *UserinfoController) Get() {

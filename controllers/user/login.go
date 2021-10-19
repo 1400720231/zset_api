@@ -1,6 +1,7 @@
 package user
 
 import (
+	"fmt"
 	"github.com/beego/beego/v2/adapter/orm"
 	"github.com/beego/beego/v2/core/logs"
 	"github.com/beego/beego/v2/server/web/context"
@@ -23,7 +24,8 @@ func (self *LoginController) Post() {
 	data := make(map[string]interface{})
 	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
 	username := self.GetString("username")                                     //默认值为空字符串
-	password := self.GetString("password")                                     //默认值为空字符串
+	password := self.GetString("password")
+	fmt.Println(username, password) //默认值为空字符串
 	md5Pwd := common.GetMd5Str(password)
 	userStruct := &user.User{}
 	//声明orm对象
@@ -64,6 +66,7 @@ func (self *LoginController) CheckValidPermission(ctx *context.Context) map[stri
 	ok := o.QueryTable("user").Filter("user_name", username).Filter("password", md5Pwd).Exist()
 	logs.Info("LoginController", ok)
 	if ok {
+
 		return response
 	}
 

@@ -33,30 +33,30 @@ type UserinfoJson struct {
 // Post 利用结构体的绑定实现http的post方法 beego内部对应的Post函数
 func (self *ModifyUserinfoController) Post() {
 
-	user := user.User{}    //model 对象
+	userIns := user.User{} //model 对象
 	form := UserinfoForm{} //表单对象
 
 	o := orm.NewOrm()
-	o.QueryTable("user").Filter("id", self.UserId).One(&user)
-	fmt.Println(user)
+	o.QueryTable("user").Filter("id", self.UserId).One(&userIns)
+	fmt.Println(userIns)
 	//json_form =UserinfoJson{}
 	//err := json.Unmarshal(self.Ctx.Input.RequestBody, &json_form)//json解析 也就是前端application/json
 	//https://beego.me/docs/mvc/controller/params.md 这里要用取指针操作
 	err := self.ParseForm(&form) //form表单解析成结构体
-	fmt.Println(user)
+	fmt.Println(userIns)
 	fmt.Println(err)
 	if err == nil {
 
-		user.Age = form.Age
-		user.Gender = form.Gender
-		user.Email = form.Email
-		user.Profile = form.Profile
-		fmt.Println(user)
+		userIns.Age = form.Age
+		userIns.Gender = form.Gender
+		userIns.Email = form.Email
+		userIns.Profile = form.Profile
+		fmt.Println(userIns)
 		//更新数据库 确保主键在user.Id才能执行update
 		//update更新&user的全部数据
 		//o.Update(&user)//[UPDATE `user` SET `user_name` = ?, `password` = ?, `age` = ?, `gender` = ?, `phone` = ?, `email` = ?, `is_active` = ?, `is_delete` = ?, `profile` = ?, `update_time` = ? WHERE `id` = ?]
 		//，可以选择更新部分数据o.Update(&user, "Field1", "Field2", ...)
-		o.Update(&user, "Age", "Gender", "Email", "Profile") //[UPDATE `user` SET `age` = ?, `gender` = ?, `email` = ?, `profile` = ?, `update_time` = ? WHERE `id` = ?]
+		o.Update(&userIns, "Age", "Gender", "Email", "Profile") //[UPDATE `user` SET `age` = ?, `gender` = ?, `email` = ?, `profile` = ?, `update_time` = ? WHERE `id` = ?]
 	}
 	results := map[string]interface{}{"code": 200, "message": "修改数据成功", "data": ""}
 	self.Data["json"] = results

@@ -9,7 +9,7 @@ import (
 //model的定义见文档  https://beego.me/docs/mvc/model/models.md
 type Topic struct {
 	Id         int       `orm:"pk;auto"`                                            //id 自增
-	name       string    `orm:"size(64);description(话题名)"`                          //用户名 数据库字段会是user_name
+	Name       string    `orm:"size(64);description(话题名)"`                          //用户名 数据库字段会是user_name
 	Index      int       `orm:"description(排列顺序);default(1)"`                       //默认值是1
 	IsActive   int       `orm:"description(1上架，0下架);default(1)"`                    //默认值是1
 	IsDelete   int       `orm:"description(1删除，0未删除);default(0)"`                   //默认值是0
@@ -20,6 +20,12 @@ type Topic struct {
 //指定表在数据库中的名字
 func (u *Topic) TableName() string {
 	return "topic"
+}
+func (u *Topic) GetTopic() map[string]interface{} {
+	topic := make(map[string]interface{})
+	topic["id"] = u.Id
+	topic["name"] = u.Name
+	return topic
 }
 
 //orm注册表结构 不然调用syncdb的时候不会识别这个model 也就不会迁移成功

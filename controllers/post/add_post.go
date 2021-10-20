@@ -45,14 +45,23 @@ func (self *AddPostController) Post() {
 		response["code"] = 600
 		response["message"] = message
 		self.Data["json"] = response
+		fmt.Println(self.Data)
+		println(2222222222)
 		self.ServeJSON()
+		//fmt.Println(3333333)
+		//self.Data["json"]=map[string]interface{}{"code": 200, "message": "", "data": ""}
+		//self.ServeJSON()
+		//fmt.Println(self.Data)
+		return
 		//注意这里必须要return或者self.StopRun()，不然函数会继续往if结构体后面执行
 		//通过源码可知道，ServeJSON只是设置了上下文中http response中的headers：application/json,然后跟你设置的self.Data["json"] = response
 		//判断一下是否能用json格式返回，并返回一个error类型。
 		//所以ServeJSON并不是Post方法的结束标志，还会往下执行，所以你需要手动return或者self.StopRun()
 
 		//但是我同时发现了另外一个问题似乎ServeJSON在整个证明周期中只对第一次执行的内容生效
-		//后面再次执行ServeJSON不会修改返回的内容self.Data["json"]，不知道为什么
+		//后面再次执行ServeJSON不会修改返回的内容self.Data["json"]，是因为在beego的output中对返回的response做了限制不能多提
+		//多response，也就是不能多次调用ServeJSON函数，用output.Status来标记的：
+		//https://github.com/beego/beego/blob/develop/server/web/context/output.go
 
 		//return
 		//self.StopRun()

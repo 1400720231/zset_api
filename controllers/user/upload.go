@@ -17,7 +17,7 @@ func (self *UploadController) Post() {
 	f, _, err := self.GetFile("file")
 	if err != nil {
 		response["code"] = 600
-		response["message"] = "文件上传出错"
+		response["link"] = "文件上传出错"
 	}
 	link := common.UploadFileToOss(f, "go封面.jpeg")
 

@@ -3,6 +3,7 @@ package routers
 import (
 	beego "github.com/beego/beego/v2/server/web"
 	"zset_api/controllers"
+	"zset_api/controllers/post"
 	"zset_api/controllers/topic"
 	"zset_api/controllers/user"
 )
@@ -17,5 +18,6 @@ func init() {
 	beego.Router("/modify_userinfo/:user_id:int", &user.ModifyUserinfoController{})
 	beego.Router("/upload", &user.UploadController{})
 	beego.Router("/topic", &topic.AllTopicController{})
+	beego.Router("/post", &post.AllPostController{})
 
 }

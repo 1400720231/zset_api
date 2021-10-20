@@ -1,8 +1,15 @@
 package post
 
 import (
+	"fmt"
+	"github.com/beego/beego/v2/client/orm"
+	"github.com/beego/beego/v2/core/validation"
 	"github.com/beego/beego/v2/server/web/context"
+	"strings"
 	"zset_api/common"
+	"zset_api/models/post"
+	"zset_api/models/topic"
+	"zset_api/models/user"
 )
 
 type AddPostController struct {
@@ -10,19 +17,55 @@ type AddPostController struct {
 }
 
 //form
+//validation: https://beego.me/docs/mvc/controller/validation.md#%E7%A4%BA%E4%BE%8B
+//Required不传参校验不通过ok=false，不会抛出错误err=nil
+//Min(1)表示最小值是1 ，如果值是0，ok=false不会抛出错误err=nil，
+//如果topic="大大说"不是一个int才会抛出错误err
+//也就是说判断一个表单是否校验通过其核心是看ok是否为true，err是不满足类型格式校验的时候才会有值
 type addPostForm struct {
+	TopicId  int    `form:"topic_id" valid:"Required;Min(1)"` //
+	Title    string `form:"title" valid:"Required;MinSize(1);MaxSize(50)"`
+	Content  string `form:"content" valid:"Required;MinSize(1);MaxSize(5000)"`
+	IsActive int    `form:"is_active" valid:"Required;Min(1)"`
 }
 
 //json application/json
 type addPostJson struct {
+	TopicId  string `form:"topic_id"`
+	Title    string `form:"title"`
+	Content  string `form:"content"`
+	IsActive int    `form:"is_active"`
 }
 
 func (self *AddPostController) Post() {
-	var data []map[string]interface{}                                             //type reference 声明一个不定长的map类型的数组
 	var response = map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
 
-	response["data"] = data
+	err, message := self.Validate(self.Ctx)
+	if err != nil {
+		response["code"] = 600
+		response["message"] = message
+		self.Data["json"] = response
+		self.ServeJSON()
+	}
+	o := orm.NewOrm()
+	topic_id, _ := self.GetInt("topic_id")
+
+	is_active, _ := self.GetInt("is_active")
+	topic_obj := &topic.Topic{}
+	user_obj := &user.User{}
+	o.QueryTable("topic").Filter("Id", topic_id).One(topic_obj)
+	o.QueryTable("user").Filter("Id", self.UserId).One(user_obj)
+	post_obj := post.Post{
+		UserId:   user_obj,
+		TopicId:  topic_obj,
+		Content:  self.GetString("content"),
+		Title:    self.GetString("title"),
+		IsActive: is_active,
+	}
+	o.Insert(&post_obj)
+	response["data"] = map[string]interface{}{"id": post_obj.Id}
 	self.Data["json"] = response
+	response["message"] = "发帖成功"
 	self.ServeJSON()
 }
 func (self *AddPostController) Authorization(ctx *context.Context) (int, error) {
@@ -40,9 +83,36 @@ func (self *AddPostController) CheckPermission(ctx *context.Context) bool {
 	return false
 }
 
-// CheckValidPermission form表单校验
+//  form表单校验基本校验 相当于接口文档层面校验
 func (self *AddPostController) CheckValidPermission(ctx *context.Context) map[string]interface{} {
 	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
+	form := addPostForm{}
+	err := self.ParseForm(&form)
 
+	valid := validation.Validation{}
+	//u := addPostForm{TopicId: 0}
+	if err == nil {
+		//Required不传参校验不通过ok=false，不会抛出错误err=nil
+		//Min(1)表示最小值是1 ，如果值是0，ok=false不会抛出错误err=nil，
+		//如果topic="大大说"不是一个int才会抛出错误err
+		//也就是说判断一个表单是否校验通过其核心是看ok是否为true，err是不满足类型格式校验的时候才会有值
+		ok, _ := valid.Valid(&form)
+		if ok != true {
+			response["code"] = 400
+			response["message"] = "参数错误"
+			response["data"] = form
+		}
+	}
 	return response
+}
+
+// 表单的业务逻校验
+func (self *AddPostController) Validate(ctx *context.Context) (error, string) {
+	content := self.GetString("content", "")
+	index := strings.Index(content, "sb")
+	if index != -1 {
+		return fmt.Errorf("校验失败"), "包含敏感词汇"
+	} else {
+		return nil, ""
+	}
 }

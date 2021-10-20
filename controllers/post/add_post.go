@@ -39,24 +39,39 @@ type addPostJson struct {
 
 func (self *AddPostController) Post() {
 	var response = map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
-
 	err, message := self.Validate(self.Ctx)
+
 	if err != nil {
 		response["code"] = 600
 		response["message"] = message
 		self.Data["json"] = response
 		self.ServeJSON()
+		//注意这里必须要return或者self.StopRun()，不然函数会继续往if结构体后面执行
+		//通过源码可知道，ServeJSON只是设置了上下文中http response中的headers：application/json,然后跟你设置的self.Data["json"] = response
+		//判断一下是否能用json格式返回，并返回一个error类型。
+		//所以ServeJSON并不是Post方法的结束标志，还会往下执行，所以你需要手动return或者self.StopRun()
+
+		//但是我同时发现了另外一个问题似乎ServeJSON在整个证明周期中只对第一次执行的内容生效
+		//后面再次执行ServeJSON不会修改返回的内容self.Data["json"]，不知道为什么
+
+		//return
+		//self.StopRun()
 	}
+
+	fmt.Println("ServeJSON")
 	o := orm.NewOrm()
 	topic_id, _ := self.GetInt("topic_id")
-
 	is_active, _ := self.GetInt("is_active")
-	topic_obj := &topic.Topic{}
-	user_obj := &user.User{}
-	o.QueryTable("topic").Filter("Id", topic_id).One(topic_obj)
-	o.QueryTable("user").Filter("Id", self.UserId).One(user_obj)
+	//方式1
+	topic_obj := &topic.Topic{Id: topic_id}
+	user_obj := &user.User{Id: self.UserId}
+	//方式2
+	//topic_obj := &topic.Topic{}
+	//user_obj := &user.User{}
+	//o.QueryTable("topic").Filter("Id", topic_id).One(topic_obj)
+	//o.QueryTable("user").Filter("Id", self.UserId).One(user_obj)
 	post_obj := post.Post{
-		UserId:   user_obj,
+		UserId:   user_obj, //注意这里是个user的结构体实例化对象，而post只需要这个user结构体中的id，所以你直接实例化或者orm查询都行
 		TopicId:  topic_obj,
 		Content:  self.GetString("content"),
 		Title:    self.GetString("title"),

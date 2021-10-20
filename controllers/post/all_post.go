@@ -1,7 +1,6 @@
 package post
 
 import (
-	"fmt"
 	"github.com/beego/beego/v2/client/orm"
 	"github.com/beego/beego/v2/server/web/context"
 	"zset_api/common"
@@ -13,16 +12,22 @@ type AllPostController struct {
 }
 
 func (self *AllPostController) Get() {
-	var data []map[string]interface{}                                          //type reference 声明一个不定长的map类型的数组
-	response := map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
+	var data []map[string]interface{}                                             //type reference 声明一个不定长的map类型的数组
+	var response = map[string]interface{}{"code": 200, "message": "", "data": ""} //默认状态码200
 	//注意这里的写法只声明变量类型 .All()源码中是这么写的。
 	var posts []*post.Post
 	o := orm.NewOrm()
 
-	//select id name from topic;
-	count, _ := o.QueryTable("post").Filter("is_delete", 0).Filter("is_active", 1).All(&posts, "Id", "Title", "Content", "CreateTime", "UpdateTime")
-
-	fmt.Println("count", count)
+	//select id name from topic; .All(&posts, "Id", "Title", "Content", "CreateTime", "UpdateTime")
+	qs := o.QueryTable("post").Filter("is_delete", 0).Filter("is_active", 1)
+	offset, _ := self.GetInt("offset", 0)
+	limit, _ := self.GetInt("limit", 10)
+	order := self.GetString("id", "")
+	qs = qs.Limit(limit).Offset(offset)
+	if order != "" {
+		qs = qs.OrderBy(order)
+	}
+	qs.All(&posts, "Id", "Title", "Content", "CreateTime", "UpdateTime")
 	response["code"] = 200
 	response["message"] = "success"
 	//迭代序列化数据封装
